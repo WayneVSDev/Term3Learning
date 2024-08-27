@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurable Flashcards</title>
+  <style>
+    body {
+      font-family: 'Open Sans', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background-color: #f4f7f6;
+    }
+    .switch-button {
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      background-color: #8e44ad;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    .card-container {
+      display: grid;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    .card {
+      background-color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: linear-gradient(145deg, #fdebd0, #f4d03f);
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+    }
+    .card:hover {
+      transform: scale(1.05);
+    }
+    .hidden {
+      display: none;
+    }
+    .subject {
+      font-weight: bold;
+      color: #34495e;
+      margin-bottom: 5px;
+    }
+    .attribute {
+      font-weight: normal;
+      color: #7f8c8d;
+    }
+  </style>
+</head>
+
+<body>
+  <button id="switch-button" class="switch-button"></button>
+  <audio id="sound-effect" src="Ring01.mp3"></audio>
+  <div id="card-container" class="card-container"></div>
+
+  <script>
+    // Configurable data structure
+    const flashcardData = [
+      {
+        subject: "龙 (Lóng)",
+        attributes: [
+          { name: "English", content: "Dragon", lang: "en-US" },
+          { name: "Japanese", content: "竜 (りゅう)", lang: "ja-JP" },
+          { name: "French", content: "Dragon", lang: "fr-FR" },
+          { name: "German", content: "Drache", lang: "de-DE" },
+          { name: "Spanish", content: "Dragón", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "皇帝 (Huángdì)",
+        attributes: [
+          { name: "English", content: "Emperor", lang: "en-US" },
+          { name: "Japanese", content: "皇帝 (こうてい)", lang: "ja-JP" },
+          { name: "French", content: "Empereur", lang: "fr-FR" },
+          { name: "German", content: "Kaiser", lang: "de-DE" },
+          { name: "Spanish", content: "Emperador", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "力量 (Lìliàng)",
+        attributes: [
+          { name: "English", content: "Power", lang: "en-US" },
+          { name: "Japanese", content: "力 (ちから)", lang: "ja-JP" },
+          { name: "French", content: "Pouvoir", lang: "fr-FR" },
+          { name: "German", content: "Macht", lang: "de-DE" },
+          { name: "Spanish", content: "Poder", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "财富 (Cáifù)",
+        attributes: [
+          { name: "English", content: "Wealth", lang: "en-US" },
+          { name: "Japanese", content: "富 (とみ)", lang: "ja-JP" },
+          { name: "French", content: "Richesse", lang: "fr-FR" },
+          { name: "German", content: "Reichtum", lang: "de-DE" },
+          { name: "Spanish", content: "Riqueza", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "力量 (Lìliàng)",
+        attributes: [
+          { name: "English", content: "Strength", lang: "en-US" },
+          { name: "Japanese", content: "強さ (つよさ)", lang: "ja-JP" },
+          { name: "French", content: "Force", lang: "fr-FR" },
+          { name: "German", content: "Stärke", lang: "de-DE" },
+          { name: "Spanish", content: "Fuerza", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "健康 (Jiànkāng)",
+        attributes: [
+          { name: "English", content: "Health", lang: "en-US" },
+          { name: "Japanese", content: "健康 (けんこう)", lang: "ja-JP" },
+          { name: "French", content: "Santé", lang: "fr-FR" },
+          { name: "German", content: "Gesundheit", lang: "de-DE" },
+          { name: "Spanish", content: "Salud", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "自豪 (Zìháo)",
+        attributes: [
+          { name: "English", content: "Pride", lang: "en-US" },
+          { name: "Japanese", content: "誇り (ほこり)", lang: "ja-JP" },
+          { name: "French", content: "Fierté", lang: "fr-FR" },
+          { name: "German", content: "Stolz", lang: "de-DE" },
+          { name: "Spanish", content: "Orgullo", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "勇气 (Yǒngqì)",
+        attributes: [
+          { name: "English", content: "Courage", lang: "en-US" },
+          { name: "Japanese", content: "勇気 (ゆうき)", lang: "ja-JP" },
+          { name: "French", content: "Courage", lang: "fr-FR" },
+          { name: "German", content: "Mut", lang: "de-DE" },
+          { name: "Spanish", content: "Coraje", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "繁荣 (Fánróng)",
+        attributes: [
+          { name: "English", content: "Prosperity", lang: "en-US" },
+          { name: "Japanese", content: "繁栄 (はんえい)", lang: "ja-JP" },
+          { name: "French", content: "Prospérité", lang: "fr-FR" },
+          { name: "German", content: "Wohlstand", lang: "de-DE" },
+          { name: "Spanish", content: "Prosperidad", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "保护 (Bǎohù)",
+        attributes: [
+          { name: "English", content: "Protection", lang: "en-US" },
+          { name: "Japanese", content: "保護 (ほご)", lang: "ja-JP" },
+          { name: "French", content: "Protection", lang: "fr-FR" },
+          { name: "German", content: "Schutz", lang: "de-DE" },
+          { name: "Spanish", content: "Protección", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "龙马精神 (Lóngmǎ jīngshén)",
+        attributes: [
+          { name: "English", content: "Spirit of the Dragon and Horse", lang: "en-US" },
+          { name: "Japanese", content: "龍馬精神 (りゅうま せいしん)", lang: "ja-JP" },
+          { name: "French", content: "Esprit du Dragon et du Cheval", lang: "fr-FR" },
+          { name: "German", content: "Geist des Drachen und Pferdes", lang: "de-DE" },
+          { name: "Spanish", content: "Espíritu del Dragón y el Caballo", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "熊猫 (Xióngmāo)",
+        attributes: [
+          { name: "English", content: "Panda", lang: "en-US" },
+          { name: "Japanese", content: "パンダ (ぱんだ)", lang: "ja-JP" },
+          { name: "French", content: "Panda", lang: "fr-FR" },
+          { name: "German", content: "Panda", lang: "de-DE" },
+          { name: "Spanish", content: "Panda", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "友谊 (Yǒuyì)",
+        attributes: [
+          { name: "English", content: "Friendship", lang: "en-US" },
+          { name: "Japanese", content: "友情 (ゆうじょう)", lang: "ja-JP" },
+          { name: "French", content: "Amitié", lang: "fr-FR" },
+          { name: "German", content: "Freundschaft", lang: "de-DE" },
+          { name: "Spanish", content: "Amistad", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "阴阳 (Yīnyáng)",
+        attributes: [
+          { name: "English", content: "Yin and Yang", lang: "en-US" },
+          { name: "Japanese", content: "陰陽 (いんよう)", lang: "ja-JP" },
+          { name: "French", content: "Yin et Yang", lang: "fr-FR" },
+          { name: "German", content: "Yin und Yang", lang: "de-DE" },
+          { name: "Spanish", content: "Yin y Yang", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "和平 (Hépíng)",
+        attributes: [
+          { name: "English", content: "Peace", lang: "en-US" },
+          { name: "Japanese", content: "平和 (へいわ)", lang: "ja-JP" },
+          { name: "French", content: "Paix", lang: "fr-FR" },
+          { name: "German", content: "Frieden", lang: "de-DE" },
+          { name: "Spanish", content: "Paz", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "喜鹊叫喜事到 (Xǐquè jiào xǐshì dào)",
+        attributes: [
+          { name: "English", content: "Magpie calls, good things come", lang: "en-US" },
+          { name: "Japanese", content: "カササギが鳴くと良いことが起こる (かささぎがなくとよいことがおこる)", lang: "ja-JP" },
+          { name: "French", content: "Quand la pie chante, de bonnes choses arrivent", lang: "fr-FR" },
+          { name: "German", content: "Wenn die Elster ruft, kommen gute Dinge", lang: "de-DE" },
+          { name: "Spanish", content: "Cuando canta la urraca, vienen cosas buenas", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "欢乐的使者 (Huānlè de shǐzhě)",
+        attributes: [
+          { name: "English", content: "Messenger of Joy", lang: "en-US" },
+          { name: "Japanese", content: "喜びの使者 (よろこびのししゃ)", lang: "ja-JP" },
+          { name: "French", content: "Messager de joie", lang: "fr-FR" },
+          { name: "German", content: "Bote der Freude", lang: "de-DE" },
+          { name: "Spanish", content: "Mensajero de alegría", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "祝你好运 (Zhù nǐ hǎo yùn)",
+        attributes: [
+          { name: "English", content: "Good luck", lang: "en-US" },
+          { name: "Japanese", content: "幸運を祈ります (こううんをいのります)", lang: "ja-JP" },
+          { name: "French", content: "Bonne chance", lang: "fr-FR" },
+          { name: "German", content: "Viel Glück", lang: "de-DE" },
+          { name: "Spanish", content: "Buena suerte", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "福 (Fú)",
+        attributes: [
+          { name: "English", content: "Good fortune", lang: "en-US" },
+          { name: "Japanese", content: "福 (ふく)", lang: "ja-JP" },
+          { name: "French", content: "Bonne fortune", lang: "fr-FR" },
+          { name: "German", content: "Gutes Schicksal", lang: "de-DE" },
+          { name: "Spanish", content: "Buena fortuna", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "幸福 (Xìngfú)",
+        attributes: [
+          { name: "English", content: "Happiness", lang: "en-US" },
+          { name: "Japanese", content: "幸福 (こうふく)", lang: "ja-JP" },
+          { name: "French", content: "Bonheur", lang: "fr-FR" },
+          { name: "German", content: "Glück", lang: "de-DE" },
+          { name: "Spanish", content: "Felicidad", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "竹子 (Zhúzi)",
+        attributes: [
+          { name: "English", content: "Bamboo", lang: "en-US" },
+          { name: "Japanese", content: "竹 (たけ)", lang: "ja-JP" },
+          { name: "French", content: "Bambou", lang: "fr-FR" },
+          { name: "German", content: "Bambus", lang: "de-DE" },
+          { name: "Spanish", content: "Bambú", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "诚实 (Chéngshí)",
+        attributes: [
+          { name: "English", content: "Honesty", lang: "en-US" },
+          { name: "Japanese", content: "誠実 (せいじつ)", lang: "ja-JP" },
+          { name: "French", content: "Honnêteté", lang: "fr-FR" },
+          { name: "German", content: "Ehrlichkeit", lang: "de-DE" },
+          { name: "Spanish", content: "Honestidad", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "简单 (Jiǎndān)",
+        attributes: [
+          { name: "English", content: "Simplicity", lang: "en-US" },
+          { name: "Japanese", content: "簡単 (かんたん)", lang: "ja-JP" },
+          { name: "French", content: "Simplicité", lang: "fr-FR" },
+          { name: "German", content: "Einfachheit", lang: "de-DE" },
+          { name: "Spanish", content: "Simplicidad", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "诚信成长 (Chéngxìn chéngzhǎng)",
+        attributes: [
+          { name: "English", content: "Honest growth", lang: "en-US" },
+          { name: "Japanese", content: "誠実な成長 (せいじつなせいちょう)", lang: "ja-JP" },
+          { name: "French", content: "Croissance honnête", lang: "fr-FR" },
+          { name: "German", content: "Ehrliches Wachstum", lang: "de-DE" },
+          { name: "Spanish", content: "Crecimiento honesto", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "力量 (Lìliàng)",
+        attributes: [
+          { name: "English", content: "Strength", lang: "en-US" },
+          { name: "Japanese", content: "強さ (つよさ)", lang: "ja-JP" },
+          { name: "French", content: "Force", lang: "fr-FR" },
+          { name: "German", content: "Stärke", lang: "de-DE" },
+          { name: "Spanish", content: "Fuerza", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "长寿 (Chángshòu)",
+        attributes: [
+          { name: "English", content: "Long life", lang: "en-US" },
+          { name: "Japanese", content: "長寿 (ちょうじゅ)", lang: "ja-JP" },
+          { name: "French", content: "Longue vie", lang: "fr-FR" },
+          { name: "German", content: "Langes Leben", lang: "de-DE" },
+          { name: "Spanish", content: "Larga vida", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "湿度 (Shīdù)",
+        attributes: [
+          { name: "English", content: "Humidity", lang: "en-US" },
+          { name: "Japanese", content: "湿度 (しつど)", lang: "ja-JP" },
+          { name: "French", content: "Humidité", lang: "fr-FR" },
+          { name: "German", content: "Feuchtigkeit", lang: "de-DE" },
+          { name: "Spanish", content: "Humedad", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "胸有成竹 (Xiōng yǒu chéng zhú)",
+        attributes: [
+          { name: "English", content: "Lot of confidence", lang: "en-US" },
+          { name: "Japanese", content: "自信満々 (じしんまんまん)", lang: "ja-JP" },
+          { name: "French", content: "Beaucoup de confiance", lang: "fr-FR" },
+          { name: "German", content: "Viel Vertrauen", lang: "de-DE" },
+          { name: "Spanish", content: "Mucha confianza", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "莲花 (Liánhuā)",
+        attributes: [
+          { name: "English", content: "Lotus flower", lang: "en-US" },
+          { name: "Japanese", content: "蓮の花 (はすのはな)", lang: "ja-JP" },
+          { name: "French", content: "Fleur de lotus", lang: "fr-FR" },
+          { name: "German", content: "Lotusblume", lang: "de-DE" },
+          { name: "Spanish", content: "Flor de loto", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "美丽 (Měilì)",
+        attributes: [
+          { name: "English", content: "Beauty", lang: "en-US" },
+          { name: "Japanese", content: "美しさ (うつくしさ)", lang: "ja-JP" },
+          { name: "French", content: "Beauté", lang: "fr-FR" },
+          { name: "German", content: "Schönheit", lang: "de-DE" },
+          { name: "Spanish", content: "Belleza", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "纯度 (Chúndù)",
+        attributes: [
+          { name: "English", content: "Purity", lang: "en-US" },
+          { name: "Japanese", content: "純度 (じゅんど)", lang: "ja-JP" },
+          { name: "French", content: "Pureté", lang: "fr-FR" },
+          { name: "German", content: "Reinheit", lang: "de-DE" },
+          { name: "Spanish", content: "Pureza", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "优雅 (Yōuyǎ)",
+        attributes: [
+          { name: "English", content: "Grace", lang: "en-US" },
+          { name: "Japanese", content: "優雅 (ゆうが)", lang: "ja-JP" },
+          { name: "French", content: "Grâce", lang: "fr-FR" },
+          { name: "German", content: "Anmut", lang: "de-DE" },
+          { name: "Spanish", content: "Gracia", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "重生 (Chóngshēng)",
+        attributes: [
+          { name: "English", content: "Rebirth", lang: "en-US" },
+          { name: "Japanese", content: "再生 (さいせい)", lang: "ja-JP" },
+          { name: "French", content: "Renaissance", lang: "fr-FR" },
+          { name: "German", content: "Wiedergeburt", lang: "de-DE" },
+          { name: "Spanish", content: "Renacimiento", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "干净的 (Gānjìng de)",
+        attributes: [
+          { name: "English", content: "Clean", lang: "en-US" },
+          { name: "Japanese", content: "清潔な (せいけつな)", lang: "ja-JP" },
+          { name: "French", content: "Propre", lang: "fr-FR" },
+          { name: "German", content: "Sauber", lang: "de-DE" },
+          { name: "Spanish", content: "Limpio", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "弹力 (Tánlì)",
+        attributes: [
+          { name: "English", content: "Resilience", lang: "en-US" },
+          { name: "Japanese", content: "弾力 (だんりょく)", lang: "ja-JP" },
+          { name: "French", content: "Résilience", lang: "fr-FR" },
+          { name: "German", content: "Elastizität", lang: "de-DE" },
+          { name: "Spanish", content: "Resiliencia", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "精美的 (Jīngměi de)",
+        attributes: [
+          { name: "English", content: "Delicate", lang: "en-US" },
+          { name: "Japanese", content: "精巧な (せいこうな)", lang: "ja-JP" },
+          { name: "French", content: "Délicat", lang: "fr-FR" },
+          { name: "German", content: "Zart", lang: "de-DE" },
+          { name: "Spanish", content: "Delicado", lang: "es-ES" }
+        ]
+      },
+      {
+        subject: "超越 (Chāoyuè)",
+        attributes: [
+          { name: "English", content: "Transcendence", lang: "en-US" },
+          { name: "Japanese", content: "超越 (ちょうえつ)", lang: "ja-JP" },
+          { name: "French", content: "Transcendance", lang: "fr-FR" },
+          { name: "German", content: "Überlegenheit", lang: "de-DE" },
+          { name: "Spanish", content: "Trascendencia", lang: "es-ES" }
+        ]
+      }
+    ];
+
+    let currentAttributeIndex = 0;
+
+    function createCards() {
+      const container = document.getElementById('card-container');
+      flashcardData.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => reveal(card, index);
+
+        const subjectDiv = document.createElement('div');
+        subjectDiv.className = 'subject';
+        subjectDiv.textContent = item.subject;
+        card.appendChild(subjectDiv);
+
+        item.attributes.forEach(attr => {
+          const attrDiv = document.createElement('div');
+          attrDiv.className = 'attribute hidden';
+          attrDiv.textContent = attr.content;
+          attrDiv.dataset.lang = attr.lang;
+          card.appendChild(attrDiv);
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    function updateSwitchButton() {
+      const button = document.getElementById('switch-button');
+      const currentAttr = flashcardData[0].attributes[currentAttributeIndex];
+      button.innerHTML = `Show: <b style="color: yellow">${currentAttr.name}</b>`;
+    }
+
+    function switchAttribute() {
+      currentAttributeIndex = (currentAttributeIndex + 1) % flashcardData[0].attributes.length;
+      updateSwitchButton();
+      document.querySelectorAll('.card').forEach(card => {
+        card.classList.remove('revealed');
+        card.querySelectorAll('.attribute').forEach(attr => attr.classList.add('hidden'));
+      });
+      document.getElementById('sound-effect').play();
+    }
+
+    function reveal(card, index) {
+      if (!card.classList.contains('revealed')) {
+        card.classList.add('revealed');
+        const subjectElement = card.querySelector('.subject');
+        const attributeElement = card.querySelectorAll('.attribute')[currentAttributeIndex];
+        
+        speakText(extractMainText(subjectElement.textContent), 'zh-CN');
+        attributeElement.classList.remove('hidden');
+        speakText(extractMainText(attributeElement.textContent), attributeElement.dataset.lang);
+      } else {
+        card.classList.remove('revealed');
+        card.querySelectorAll('.attribute').forEach(attr => attr.classList.add('hidden'));
+      }
+    }
+
+    function extractMainText(text) {
+      return text.split('(')[0].trim();
+    }
+
+    function speakText(text, lang) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Initialize the app
+    createCards();
+    updateSwitchButton();
+    document.getElementById('switch-button').onclick = switchAttribute;
+  </script>
+</body>
+</html>
